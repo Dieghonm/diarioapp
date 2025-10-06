@@ -1,14 +1,14 @@
 {
   "expo": {
-    "name": "KeyGen",
-    "slug": "KeyGen",
+    "name": "DiarioApp",
+    "slug": "DiarioApp",
     "version": "1.0.0",
     "orientation": "portrait",
-    "icon": "./assets/icon.png",
+    "icon": "./assets/diario.png",
     "userInterfaceStyle": "light",
     "newArchEnabled": true,
     "splash": {
-      "image": "./assets/splash-icon.png",
+      "image": "./assets/diario.png",
       "resizeMode": "contain",
       "backgroundColor": "#ffffff"
     },
@@ -17,13 +17,19 @@
     },
     "android": {
       "adaptiveIcon": {
-        "foregroundImage": "./assets/adaptive-icon.png",
+        "foregroundImage": "./assets/diarion.png",
         "backgroundColor": "#ffffff"
       },
-      "edgeToEdgeEnabled": true
+      "edgeToEdgeEnabled": true,
+      "package": "com.dieghonm.DiarioApp"
     },
     "web": {
-      "favicon": "./assets/favicon.png"
+      "favicon": "./assets/diario.png"
+    },
+    "extra": {
+      "eas": {
+        "projectId": "6d9f2212-7cc9-4a14-a4f8-09015476ebe8"
+      }
     }
   }
 }
