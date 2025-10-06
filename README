@@ -1,0 +1,131 @@
+# 📔 Diário App
+
+Um aplicativo mobile de diário pessoal desenvolvido em React Native com Expo, protegido por senha e com armazenamento local.
+
+<div align="center">
+  <img src="https://img.shields.io/badge/React_Native-20232A?style=for-the-badge&logo=react&logoColor=61DAFB" />
+  <img src="https://img.shields.io/badge/Expo-000020?style=for-the-badge&logo=expo&logoColor=white" />
+  <img src="https://img.shields.io/badge/AsyncStorage-FF6B6B?style=for-the-badge&logo=react&logoColor=white" />
+</div>
+
+## ✨ Funcionalidades
+
+- 🔒 **Proteção por senha** - Senha fixa de 4 dígitos (2909)
+- 📝 **Criar entradas** - Adicione data e texto para cada entrada do diário
+- 📚 **Visualizar histórico** - Todas as entradas ordenadas por data
+- 🗑️ **Deletar entradas** - Remova entradas indesejadas
+- 💾 **Armazenamento local** - Dados salvos com AsyncStorage
+- 🎨 **Design feminino e moderno** - Interface com paleta de cores rosa
+
+## 📱 Screenshots
+
+> Adicione aqui screenshots do seu app quando estiver pronto!
+
+## 🚀 Tecnologias
+
+- [React Native](https://reactnative.dev/)
+- [Expo](https://expo.dev/)
+- [AsyncStorage](https://react-native-async-storage.github.io/async-storage/)
+
+## 🛠️ Instalação
+
+### Pré-requisitos
+
+- Node.js (versão LTS recomendada)
+- npm ou yarn
+- Expo Go instalado no celular ([Android](https://play.google.com/store/apps/details?id=host.exp.exponent) | [iOS](https://apps.apple.com/br/app/expo-go/id982107779))
+
+### Passo a passo
+
+1. **Clone o repositório**
+```bash
+git clone https://github.com/Dieghonm/diarioapp.git
+cd diarioapp
+```
+
+2. **Instale as dependências**
+```bash
+npm install
+```
+
+3. **Instale o AsyncStorage**
+```bash
+npx expo install @react-native-async-storage/async-storage
+```
+
+4. **Inicie o projeto**
+```bash
+npx expo start
+```
+
+5. **Abra no seu celular**
+   - Escaneie o QR Code com o Expo Go (Android) ou com a câmera (iOS)
+   - Certifique-se que o celular e computador estão na mesma rede Wi-Fi
+
+## 🔐 Credenciais
+
+- **Senha padrão:** `2909`
+
+> ⚠️ Para alterar a senha, edite a linha de validação no arquivo `App.js`:
+```javascript
+if (password === '2909') {
+```
+
+## 📂 Estrutura do Projeto
+
+```
+DiarioApp/
+├── App.js              # Componente principal
+├── package.json        # Dependências do projeto
+├── app.json           # Configurações do Expo
+└── README.md          # Este arquivo
+```
+
+## 🎨 Paleta de Cores
+
+| Cor | Hex | Uso |
+|-----|-----|-----|
+| Rosa Pink | `#E91E8C` | Cabeçalho e elementos principais |
+| Rosa Escuro | `#C84B85` | Títulos e destaques |
+| Rosa Médio | `#D946A7` | Botão de salvar |
+| Rosa Claro | `#F4C8DD` | Bordas |
+| Rosa Muito Claro | `#FFE4F1` | Fundos e ícones |
+| Rosa Suave | `#FFF0F5` | Fundo geral |
+
+## 📝 Como Usar
+
+1. **Login:** Digite a senha `2909` para acessar o diário
+2. **Criar entrada:** Preencha a data e o texto, depois clique em "Salvar Entrada"
+3. **Visualizar:** Role para baixo para ver todas as suas entradas
+4. **Deletar:** Toque no ícone da lixeira 🗑️ em qualquer entrada para removê-la
+
+## 🤝 Contribuindo
+
+Contribuições são sempre bem-vindas!
+
+1. Faça um Fork do projeto
+2. Crie uma branch para sua feature (`git checkout -b feature/MinhaFeature`)
+3. Commit suas mudanças (`git commit -m 'Adiciona nova feature'`)
+4. Push para a branch (`git push origin feature/MinhaFeature`)
+5. Abra um Pull Request
+
+## 📄 Licença
+
+Este projeto está sob a licença MIT. Veja o arquivo [LICENSE](LICENSE) para mais detalhes.
+
+## 👨‍💻 Autor
+
+**Diegho Moraes**
+
+- GitHub: [@Dieghonm](https://github.com/Dieghonm)
+
+## 🙏 Agradecimentos
+
+- Projeto desenvolvido com auxílio da Claude AI
+- Inspirado na necessidade de ter um diário pessoal e privado
+
+---
+
+<div align="center">
+  Feito com 💕 por Diegho Moraes
+</div>
