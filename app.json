@@ -1,34 +1,46 @@
 {
   "expo": {
-    "name": "DiarioApp",
+    "name": "Diário App",
     "slug": "DiarioApp",
     "version": "1.0.0",
     "orientation": "portrait",
     "icon": "./assets/diario.png",
     "userInterfaceStyle": "light",
-    "newArchEnabled": true,
     "splash": {
       "image": "./assets/diario.png",
       "resizeMode": "contain",
-      "backgroundColor": "#ffffff"
+      "backgroundColor": "#FFF0F5"
     },
+    "assetBundlePatterns": [
+      "**/*"
+    ],
     "ios": {
-      "supportsTablet": true
+      "supportsTablet": true,
+      "bundleIdentifier": "com.dieghonm.diarioapp"
     },
     "android": {
       "adaptiveIcon": {
-        "foregroundImage": "./assets/diarion.png",
-        "backgroundColor": "#ffffff"
+        "foregroundImage": "./assets/diario.png",
+        "backgroundColor": "#FFF0F5"
       },
-      "edgeToEdgeEnabled": true,
-      "package": "com.dieghonm.DiarioApp"
+      "package": "com.dieghonm.diarioapp"
     },
     "web": {
       "favicon": "./assets/diario.png"
     },
+    "plugins": [
+      [
+        "expo-build-properties",
+        {
+          "android": {
+            "kotlinVersion": "1.9.0"
+          }
+        }
+      ]
+    ],
     "extra": {
       "eas": {
-        "projectId": "6d9f2212-7cc9-4a14-a4f8-09015476ebe8"
+        "projectId": "b00d4a90-33d3-4b83-94d3-0b200cc55c18"
       }
     }
   }
