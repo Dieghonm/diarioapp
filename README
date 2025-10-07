@@ -1,6 +1,6 @@
 # 📔 Diário App
 
-Um aplicativo mobile de diário pessoal desenvolvido em React Native com Expo, protegido por senha e com armazenamento local.
+Um aplicativo mobile de diário pessoal desenvolvido em React Native com Expo, protegido por senha personalizável e com armazenamento local.
 
 <div align="center">
   <img src="https://img.shields.io/badge/React_Native-20232A?style=for-the-badge&logo=react&logoColor=61DAFB" />
@@ -10,12 +10,25 @@ Um aplicativo mobile de diário pessoal desenvolvido em React Native com Expo, p
 
 ## ✨ Funcionalidades
 
-- 🔒 **Proteção por senha** - Senha fixa de 4 dígitos (2909)
-- 📝 **Criar entradas** - Adicione data e texto para cada entrada do diário
+- 🔐 **Criação de senha personalizada** - Defina sua própria senha de 4 dígitos na primeira vez
+- 🔒 **Login seguro** - Senha armazenada localmente com AsyncStorage
+- 📅 **Calendário interativo** - Veja os dias com entradas registradas em destaque
+- 📝 **Criar entradas completas**:
+  - Data (pré-preenchida com data atual)
+  - Tema/título opcional
+  - Texto da entrada
+  - 5 cores pastéis para personalizar o fundo
 - 📚 **Visualizar histórico** - Todas as entradas ordenadas por data
 - 🗑️ **Deletar entradas** - Remova entradas indesejadas
-- 💾 **Armazenamento local** - Dados salvos com AsyncStorage
 - 🎨 **Design feminino e moderno** - Interface com paleta de cores rosa
+
+## 🎨 Cores Pastéis Disponíveis
+
+- 🌸 **Rosa Suave** - Para dias românticos
+- 💙 **Azul Céu** - Para dias calmos
+- 💚 **Verde Menta** - Para dias revigorantes
+- 💜 **Lavanda** - Para dias relaxantes
+- 🧡 **Pêssego** - Para dias acolhedores
 
 ## 📱 Screenshots
 
@@ -26,6 +39,37 @@ Um aplicativo mobile de diário pessoal desenvolvido em React Native com Expo, p
 - [React Native](https://reactnative.dev/)
 - [Expo](https://expo.dev/)
 - [AsyncStorage](https://react-native-async-storage.github.io/async-storage/)
+
+## 📂 Estrutura do Projeto
+
+```
+DiarioApp/
+├── src/
+│   ├── components/          # Componentes reutilizáveis
+│   │   ├── Calendar.js      # Calendário mensal
+│   │   ├── ColorPicker.js   # Seletor de cores
+│   │   ├── EntryCard.js     # Card de entrada
+│   │   └── Header.js        # Cabeçalho
+│   │
+│   ├── screens/             # Telas do app
+│   │   ├── SetPasswordScreen.js  # Criar senha
+│   │   ├── LoginScreen.js        # Login
+│   │   └── DiaryScreen.js        # Diário principal
+│   │
+│   ├── services/            # Serviços
+│   │   └── storage.js       # AsyncStorage
+│   │
+│   ├── utils/               # Utilitários
+│   │   ├── constants.js     # Constantes
+│   │   └── dateUtils.js     # Funções de data
+│   │
+│   └── styles/              # Estilos
+│       └── theme.js         # Tema e cores
+│
+├── App.js                   # Componente principal
+├── package.json
+└── README.md
+```
 
 ## 🛠️ Instalação
 
@@ -48,7 +92,7 @@ cd diarioapp
 npm install
 ```
 
-3. **Instale o AsyncStorage**
+3. **Instale o AsyncStorage (se ainda não estiver instalado)**
 ```bash
 npx expo install @react-native-async-storage/async-storage
 ```
@@ -62,29 +106,33 @@ npx expo start
    - Escaneie o QR Code com o Expo Go (Android) ou com a câmera (iOS)
    - Certifique-se que o celular e computador estão na mesma rede Wi-Fi
 
-## 🔐 Credenciais
+## 📝 Como Usar
 
-- **Senha padrão:** `2909`
+1. **Primeira vez:** 
+   - Crie uma senha de 4 dígitos
+   - Confirme a senha
+   
+2. **Login:** Digite sua senha para acessar o diário
 
-> ⚠️ Para alterar a senha, edite a linha de validação no arquivo `App.js`:
-```javascript
-if (password === '2909') {
-```
+3. **Visualizar calendário:** 
+   - Dias com entradas aparecem destacados em rosa claro
+   - Clique em um dia para preencher automaticamente a data
 
-## 📂 Estrutura do Projeto
+4. **Criar entrada:**
+   - Data é preenchida automaticamente
+   - Adicione um tema (opcional)
+   - Escreva sobre seu dia
+   - Escolha uma cor pastel para o fundo
+   - Clique em "Salvar Entrada"
 
-```
-DiarioApp/
-├── App.js              # Componente principal
-├── package.json        # Dependências do projeto
-├── app.json           # Configurações do Expo
-└── README.md          # Este arquivo
-```
+5. **Visualizar entradas:** Role para baixo para ver todas as suas entradas
+
+6. **Deletar:** Toque no ícone da lixeira 🗑️ em qualquer entrada
 
 ## 🎨 Paleta de Cores
 
-| Cor | Hex | Uso |
-|-----|-----|-----|
+| Elemento | Hex | Uso |
+|----------|-----|-----|
 | Rosa Pink | `#E91E8C` | Cabeçalho e elementos principais |
 | Rosa Escuro | `#C84B85` | Títulos e destaques |
 | Rosa Médio | `#D946A7` | Botão de salvar |
@@ -92,12 +140,18 @@ DiarioApp/
 | Rosa Muito Claro | `#FFE4F1` | Fundos e ícones |
 | Rosa Suave | `#FFF0F5` | Fundo geral |
 
-## 📝 Como Usar
+### Cores Pastéis
+- Rosa Suave: `#FFE4E1`
+- Azul Céu: `#E0F2F7`
+- Verde Menta: `#E0F8E0`
+- Lavanda: `#F0E6FF`
+- Pêssego: `#FFE5CC`
 
-1. **Login:** Digite a senha `2909` para acessar o diário
-2. **Criar entrada:** Preencha a data e o texto, depois clique em "Salvar Entrada"
-3. **Visualizar:** Role para baixo para ver todas as suas entradas
-4. **Deletar:** Toque no ícone da lixeira 🗑️ em qualquer entrada para removê-la
+## 🔐 Segurança
+
+- A senha é armazenada localmente no dispositivo usando AsyncStorage
+- Nenhum dado é enviado para servidores externos
+- Todos os dados ficam apenas no seu dispositivo
 
 ## 🤝 Contribuindo
 
