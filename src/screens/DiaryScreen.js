@@ -212,7 +212,7 @@ const DiaryScreen = () => {
           activeOpacity={0.7}
         >
           <Text style={[styles.tabText, activeTab === 'list' && styles.activeTabText]}>
-            📚 Minhas anotação
+            📚 Minhas anotações
           </Text>
         </TouchableOpacity>
       </View>
@@ -307,7 +307,7 @@ const DiaryScreen = () => {
           {activeTab === 'list' && (
             <View style={styles.entriesContainer}>
               <View style={styles.entriesHeader}>
-                <Text style={styles.sectionTitle}>📚 Suas anotação</Text>
+                <Text style={styles.sectionTitle}>📚 Suas anotações</Text>
                 {(selectedDate || selectedMonth) && (
                   <TouchableOpacity 
                     style={styles.clearFilterButton}
