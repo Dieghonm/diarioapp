@@ -14,8 +14,8 @@ import {
   Keyboard,
 } from 'react-native';
 import { COLORS, globalStyles } from '../styles/theme';
-import { addEntry, getEntries } from '../services/storage';
-import { getCurrentDate, formatDate } from '../utils/dateUtils';
+import { addEntry, getEntries, updateEntry } from '../services/storage';
+import { getCurrentDate, formatDate, parseDate, normalizeDate } from '../utils/dateUtils';
 import Header from '../components/Header';
 import Calendar from '../components/Calendar';
 import ColorPicker from '../components/ColorPicker';
@@ -28,14 +28,54 @@ const DiaryScreen = () => {
   const [text, setText] = useState('');
   const [bgColor, setBgColor] = useState('pink');
   const [entries, setEntries] = useState([]);
+  const [filteredEntries, setFilteredEntries] = useState([]);
+  const [selectedDate, setSelectedDate] = useState(null);
+  const [selectedMonth, setSelectedMonth] = useState(null);
+  const [editingEntry, setEditingEntry] = useState(null);
 
   useEffect(() => {
     loadEntries();
   }, []);
 
+  useEffect(() => {
+    filterEntries();
+  }, [entries, selectedDate, selectedMonth]);
+
   const loadEntries = async () => {
     const data = await getEntries();
     setEntries(data);
+  };
+
+  const filterEntries = () => {
+    let filtered = [...entries];
+
+    if (selectedDate) {
+      // Filtrar por dia específico
+      filtered = filtered.filter(entry => {
+        const entryDate = parseDate(entry.date);
+        return entryDate && 
+               entryDate.getDate() === selectedDate.getDate() &&
+               entryDate.getMonth() === selectedDate.getMonth() &&
+               entryDate.getFullYear() === selectedDate.getFullYear();
+      });
+    } else if (selectedMonth) {
+      // Filtrar por mês
+      filtered = filtered.filter(entry => {
+        const entryDate = parseDate(entry.date);
+        return entryDate &&
+               entryDate.getMonth() === selectedMonth.month &&
+               entryDate.getFullYear() === selectedMonth.year;
+      });
+    }
+
+    // Ordenar por data (mais recente primeiro)
+    filtered.sort((a, b) => {
+      const dateA = parseDate(a.date) || new Date(a.createdAt);
+      const dateB = parseDate(b.date) || new Date(b.createdAt);
+      return dateB - dateA;
+    });
+
+    setFilteredEntries(filtered);
   };
 
   const handleSaveEntry = async () => {
@@ -51,19 +91,37 @@ const DiaryScreen = () => {
       bgColor,
     };
 
-    const newEntry = await addEntry(entry);
-    
-    if (newEntry) {
-      await loadEntries();
-      setDate(getCurrentDate());
-      setTheme('');
-      setText('');
-      setBgColor('pink');
-      Keyboard.dismiss();
-      Alert.alert('✅ Sucesso!', 'Entrada salva com sucesso!');
+    if (editingEntry) {
+      // Atualizar entrada existente
+      const success = await updateEntry(editingEntry.id, entry);
+      if (success) {
+        await loadEntries();
+        clearForm();
+        Keyboard.dismiss();
+        Alert.alert('✅ Sucesso!', 'Entrada atualizada com sucesso!');
+      } else {
+        Alert.alert('Erro', 'Não foi possível atualizar a entrada');
+      }
     } else {
-      Alert.alert('Erro', 'Não foi possível salvar a entrada');
+      // Criar nova entrada
+      const newEntry = await addEntry(entry);
+      if (newEntry) {
+        await loadEntries();
+        clearForm();
+        Keyboard.dismiss();
+        Alert.alert('✅ Sucesso!', 'Entrada salva com sucesso!');
+      } else {
+        Alert.alert('Erro', 'Não foi possível salvar a entrada');
+      }
     }
+  };
+
+  const clearForm = () => {
+    setDate(getCurrentDate());
+    setTheme('');
+    setText('');
+    setBgColor('pink');
+    setEditingEntry(null);
   };
 
   const handleDeleteEntry = async (id) => {
@@ -79,6 +137,10 @@ const DiaryScreen = () => {
             const success = await deleteEntry(id);
             if (success) {
               await loadEntries();
+              if (editingEntry && editingEntry.id === id) {
+                clearForm();
+              }
+              Alert.alert('✅ Sucesso', 'Entrada excluída com sucesso!');
             } else {
               Alert.alert('Erro', 'Não foi possível excluir a entrada');
             }
@@ -88,8 +150,43 @@ const DiaryScreen = () => {
     );
   };
 
+  const handleEditEntry = (entry) => {
+    setDate(entry.date);
+    setTheme(entry.theme || '');
+    setText(entry.text);
+    setBgColor(entry.bgColor);
+    setEditingEntry(entry);
+    
+    // Scroll para o topo para mostrar o formulário
+    Alert.alert('✏️ Modo de Edição', 'Edite a entrada e clique em "Atualizar Entrada"');
+  };
+
   const handleSelectDate = (selectedDate) => {
     setDate(formatDate(selectedDate));
+    setSelectedDate(selectedDate);
+    setSelectedMonth(null); // Limpar filtro de mês quando seleciona um dia
+  };
+
+  const handleMonthChange = (month, year) => {
+    setSelectedMonth({ month, year });
+    setSelectedDate(null); // Limpar filtro de dia quando muda de mês
+  };
+
+  const clearFilters = () => {
+    setSelectedDate(null);
+    setSelectedMonth(null);
+  };
+
+  const getFilterText = () => {
+    if (selectedDate) {
+      return `Mostrando entradas de ${formatDate(selectedDate)}`;
+    }
+    if (selectedMonth) {
+      const months = ['Janeiro', 'Fevereiro', 'Março', 'Abril', 'Maio', 'Junho',
+                     'Julho', 'Agosto', 'Setembro', 'Outubro', 'Novembro', 'Dezembro'];
+      return `Mostrando entradas de ${months[selectedMonth.month]} ${selectedMonth.year}`;
+    }
+    return 'Mostrando todas as entradas';
   };
 
   return (
@@ -111,12 +208,18 @@ const DiaryScreen = () => {
         >
           {/* Calendário */}
           <View style={styles.section}>
-            <Calendar entries={entries} onSelectDate={handleSelectDate} />
+            <Calendar 
+              entries={entries} 
+              onSelectDate={handleSelectDate}
+              onMonthChange={handleMonthChange}
+            />
           </View>
 
           {/* Formulário de Nova Entrada */}
           <View style={styles.formContainer}>
-            <Text style={styles.sectionTitle}>✍️ Nova Entrada</Text>
+            <Text style={styles.sectionTitle}>
+              {editingEntry ? '✏️ Editar Entrada' : '✍️ Nova Entrada'}
+            </Text>
 
             <View style={styles.inputGroup}>
               <Text style={styles.label}>Data</Text>
@@ -158,33 +261,67 @@ const DiaryScreen = () => {
 
             <ColorPicker selectedColor={bgColor} onSelectColor={setBgColor} />
 
-            <TouchableOpacity
-              style={styles.saveButton}
-              onPress={handleSaveEntry}
-              activeOpacity={0.8}
-            >
-              <Text style={styles.saveButtonText}>💾 Salvar Entrada</Text>
-            </TouchableOpacity>
+            <View style={styles.buttonContainer}>
+              <TouchableOpacity
+                style={styles.saveButton}
+                onPress={handleSaveEntry}
+                activeOpacity={0.8}
+              >
+                <Text style={styles.saveButtonText}>
+                  {editingEntry ? '💾 Atualizar Entrada' : '💾 Salvar Entrada'}
+                </Text>
+              </TouchableOpacity>
+
+              {editingEntry && (
+                <TouchableOpacity
+                  style={styles.cancelButton}
+                  onPress={clearForm}
+                  activeOpacity={0.8}
+                >
+                  <Text style={styles.cancelButtonText}>❌ Cancelar</Text>
+                </TouchableOpacity>
+              )}
+            </View>
           </View>
 
           {/* Lista de Entradas */}
           <View style={styles.entriesContainer}>
-            <Text style={styles.sectionTitle}>📚 Suas Entradas</Text>
+            <View style={styles.entriesHeader}>
+              <Text style={styles.sectionTitle}>📚 Suas Entradas</Text>
+              {(selectedDate || selectedMonth) && (
+                <TouchableOpacity 
+                  style={styles.clearFilterButton}
+                  onPress={clearFilters}
+                >
+                  <Text style={styles.clearFilterText}>Mostrar Todas</Text>
+                </TouchableOpacity>
+              )}
+            </View>
+
+            <Text style={styles.filterInfo}>{getFilterText()}</Text>
             
-            {entries.length === 0 ? (
+            {filteredEntries.length === 0 ? (
               <View style={styles.emptyState}>
                 <Text style={styles.emptyEmoji}>📝</Text>
-                <Text style={styles.emptyText}>Nenhuma entrada ainda</Text>
+                <Text style={styles.emptyText}>
+                  {(selectedDate || selectedMonth) 
+                    ? 'Nenhuma entrada neste período' 
+                    : 'Nenhuma entrada ainda'}
+                </Text>
                 <Text style={styles.emptySubtext}>
-                  Comece a escrever seu diário acima!
+                  {(selectedDate || selectedMonth)
+                    ? 'Tente selecionar outro período'
+                    : 'Comece a escrever seu diário acima!'}
                 </Text>
               </View>
             ) : (
-              entries.map((entry) => (
+              filteredEntries.map((entry) => (
                 <EntryCard
                   key={entry.id}
                   entry={entry}
                   onDelete={() => handleDeleteEntry(entry.id)}
+                  onEdit={() => handleEditEntry(entry)}
+                  isEditing={editingEntry && editingEntry.id === entry.id}
                 />
               ))
             )}
@@ -250,6 +387,9 @@ const styles = StyleSheet.create({
     height: 140,
     textAlignVertical: 'top',
   },
+  buttonContainer: {
+    gap: 10,
+  },
   saveButton: {
     backgroundColor: COLORS.accent,
     padding: 18,
@@ -267,9 +407,43 @@ const styles = StyleSheet.create({
     fontSize: 17,
     fontWeight: 'bold',
   },
+  cancelButton: {
+    backgroundColor: COLORS.textLight,
+    padding: 18,
+    borderRadius: 12,
+    alignItems: 'center',
+  },
+  cancelButtonText: {
+    color: COLORS.white,
+    fontSize: 17,
+    fontWeight: 'bold',
+  },
   entriesContainer: {
     padding: 15,
     paddingTop: 10,
+  },
+  entriesHeader: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    marginBottom: 10,
+  },
+  clearFilterButton: {
+    backgroundColor: COLORS.primary,
+    paddingHorizontal: 15,
+    paddingVertical: 8,
+    borderRadius: 8,
+  },
+  clearFilterText: {
+    color: COLORS.white,
+    fontSize: 12,
+    fontWeight: 'bold',
+  },
+  filterInfo: {
+    fontSize: 14,
+    color: COLORS.textMedium,
+    marginBottom: 15,
+    fontStyle: 'italic',
   },
   emptyState: {
     alignItems: 'center',

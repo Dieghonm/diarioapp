@@ -2,11 +2,15 @@ import React from 'react';
 import { View, Text, TouchableOpacity, StyleSheet } from 'react-native';
 import { COLORS, PASTEL_COLORS } from '../styles/theme';
 
-const EntryCard = ({ entry, onDelete }) => {
+const EntryCard = ({ entry, onDelete, onEdit, isEditing }) => {
   const backgroundColor = PASTEL_COLORS.find(c => c.id === entry.bgColor)?.color || COLORS.white;
 
   return (
-    <View style={[styles.card, { backgroundColor }]}>
+    <View style={[
+      styles.card, 
+      { backgroundColor },
+      isEditing && styles.cardEditing
+    ]}>
       <View style={styles.header}>
         <View style={styles.headerInfo}>
           <Text style={styles.date}>📅 {entry.date}</Text>
@@ -14,15 +18,29 @@ const EntryCard = ({ entry, onDelete }) => {
             <Text style={styles.theme}>{entry.theme}</Text>
           )}
         </View>
-        <TouchableOpacity 
-          style={styles.deleteButton}
-          onPress={onDelete}
-        >
-          <Text style={styles.deleteButtonText}>🗑️</Text>
-        </TouchableOpacity>
+        <View style={styles.buttonGroup}>
+          <TouchableOpacity 
+            style={styles.editButton}
+            onPress={onEdit}
+          >
+            <Text style={styles.editButtonText}>✏️</Text>
+          </TouchableOpacity>
+          <TouchableOpacity 
+            style={styles.deleteButton}
+            onPress={onDelete}
+          >
+            <Text style={styles.deleteButtonText}>🗑️</Text>
+          </TouchableOpacity>
+        </View>
       </View>
       
       <Text style={styles.text}>{entry.text}</Text>
+      
+      {isEditing && (
+        <View style={styles.editingBadge}>
+          <Text style={styles.editingBadgeText}>✏️ Editando</Text>
+        </View>
+      )}
     </View>
   );
 };
@@ -39,6 +57,14 @@ const styles = StyleSheet.create({
     elevation: 3,
     borderWidth: 1,
     borderColor: COLORS.border,
+  },
+  cardEditing: {
+    borderWidth: 2,
+    borderColor: COLORS.primary,
+    shadowColor: COLORS.primary,
+    shadowOpacity: 0.2,
+    shadowRadius: 8,
+    elevation: 6,
   },
   header: {
     flexDirection: 'row',
@@ -60,6 +86,16 @@ const styles = StyleSheet.create({
     fontWeight: 'bold',
     color: COLORS.secondary,
   },
+  buttonGroup: {
+    flexDirection: 'row',
+    gap: 10,
+  },
+  editButton: {
+    padding: 5,
+  },
+  editButtonText: {
+    fontSize: 22,
+  },
   deleteButton: {
     padding: 5,
   },
@@ -70,6 +106,19 @@ const styles = StyleSheet.create({
     fontSize: 16,
     color: COLORS.textDark,
     lineHeight: 24,
+  },
+  editingBadge: {
+    marginTop: 10,
+    backgroundColor: COLORS.primary,
+    paddingVertical: 5,
+    paddingHorizontal: 10,
+    borderRadius: 8,
+    alignSelf: 'flex-start',
+  },
+  editingBadgeText: {
+    color: COLORS.white,
+    fontSize: 12,
+    fontWeight: 'bold',
   },
 });
 

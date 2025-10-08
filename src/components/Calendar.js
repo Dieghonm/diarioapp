@@ -2,21 +2,29 @@ import React, { useState, useEffect } from 'react';
 import { View, Text, TouchableOpacity, StyleSheet } from 'react-native';
 import { COLORS } from '../styles/theme';
 import { MONTHS, DAYS_OF_WEEK } from '../utils/constants';
-import { getCalendarDays } from '../utils/dateUtils';
+import { getCalendarDays, parseDate } from '../utils/dateUtils';
 
-const Calendar = ({ entries, onSelectDate }) => {
+const Calendar = ({ entries, onSelectDate, onMonthChange }) => {
   const [currentMonth, setCurrentMonth] = useState(new Date().getMonth());
   const [currentYear, setCurrentYear] = useState(new Date().getFullYear());
   const [selectedDay, setSelectedDay] = useState(new Date().getDate());
 
   const days = getCalendarDays(currentMonth, currentYear);
 
+  useEffect(() => {
+    // Notificar mudança de mês
+    if (onMonthChange) {
+      onMonthChange(currentMonth, currentYear);
+    }
+  }, [currentMonth, currentYear]);
+
   const hasEntry = (day) => {
     if (!day) return false;
     
     return entries.some(entry => {
-      const entryDate = new Date(entry.createdAt);
-      return entryDate.getDate() === day &&
+      const entryDate = parseDate(entry.date);
+      return entryDate &&
+             entryDate.getDate() === day &&
              entryDate.getMonth() === currentMonth &&
              entryDate.getFullYear() === currentYear;
     });
@@ -109,7 +117,6 @@ const styles = StyleSheet.create({
     borderRadius: 15,
     padding: 15,
     marginBottom: 20,
-    marginHorizontal: 150,
     borderWidth: 1,
     borderColor: COLORS.lightPink,
     shadowColor: COLORS.primary,

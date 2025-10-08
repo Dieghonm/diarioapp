@@ -75,6 +75,22 @@ export const addEntry = async (entry) => {
   }
 };
 
+export const updateEntry = async (id, updatedData) => {
+  try {
+    const entries = await getEntries();
+    const updatedEntries = entries.map(entry => 
+      entry.id === id 
+        ? { ...entry, ...updatedData, updatedAt: new Date().toISOString() }
+        : entry
+    );
+    await saveEntries(updatedEntries);
+    return true;
+  } catch (error) {
+    console.error('Erro ao atualizar entrada:', error);
+    return false;
+  }
+};
+
 export const deleteEntry = async (id) => {
   try {
     const entries = await getEntries();
