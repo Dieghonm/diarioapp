@@ -12,7 +12,6 @@ const Calendar = ({ entries, onSelectDate, onMonthChange }) => {
   const days = getCalendarDays(currentMonth, currentYear);
 
   useEffect(() => {
-    // Notificar mudança de mês
     if (onMonthChange) {
       onMonthChange(currentMonth, currentYear);
     }
@@ -115,8 +114,7 @@ const styles = StyleSheet.create({
   container: {
     backgroundColor: COLORS.white,
     borderRadius: 15,
-    padding: 15,
-    marginBottom: 20,
+    padding: 5,
     borderWidth: 1,
     borderColor: COLORS.lightPink,
     shadowColor: COLORS.primary,
@@ -129,13 +127,10 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     justifyContent: 'space-between',
     alignItems: 'center',
-    marginBottom: 15,
-    paddingBottom: 15,
+    marginBottom: 5,
+    paddingBottom: 5,
     borderBottomWidth: 1,
     borderBottomColor: COLORS.lightPink,
-  },
-  navButton: {
-    padding: 10,
   },
   navText: {
     fontSize: 24,

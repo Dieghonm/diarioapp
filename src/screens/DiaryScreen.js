@@ -50,7 +50,6 @@ const DiaryScreen = () => {
     let filtered = [...entries];
 
     if (selectedDate) {
-      // Filtrar por dia específico
       filtered = filtered.filter(entry => {
         const entryDate = parseDate(entry.date);
         return entryDate && 
@@ -59,7 +58,6 @@ const DiaryScreen = () => {
                entryDate.getFullYear() === selectedDate.getFullYear();
       });
     } else if (selectedMonth) {
-      // Filtrar por mês
       filtered = filtered.filter(entry => {
         const entryDate = parseDate(entry.date);
         return entryDate &&
@@ -68,7 +66,6 @@ const DiaryScreen = () => {
       });
     }
 
-    // Ordenar por data (mais recente primeiro)
     filtered.sort((a, b) => {
       const dateA = parseDate(a.date) || new Date(a.createdAt);
       const dateB = parseDate(b.date) || new Date(b.createdAt);
@@ -92,7 +89,6 @@ const DiaryScreen = () => {
     };
 
     if (editingEntry) {
-      // Atualizar entrada existente
       const success = await updateEntry(editingEntry.id, entry);
       if (success) {
         await loadEntries();
@@ -103,7 +99,6 @@ const DiaryScreen = () => {
         Alert.alert('Erro', 'Não foi possível atualizar a entrada');
       }
     } else {
-      // Criar nova entrada
       const newEntry = await addEntry(entry);
       if (newEntry) {
         await loadEntries();
@@ -124,31 +119,15 @@ const DiaryScreen = () => {
     setEditingEntry(null);
   };
 
-  const handleDeleteEntry = async (id) => {
-    Alert.alert(
-      'Confirmar exclusão',
-      'Deseja realmente excluir esta entrada?',
-      [
-        { text: 'Cancelar', style: 'cancel' },
-        {
-          text: 'Excluir',
-          style: 'destructive',
-          onPress: async () => {
-            const success = await deleteEntry(id);
-            if (success) {
-              await loadEntries();
-              if (editingEntry && editingEntry.id === id) {
-                clearForm();
-              }
-              Alert.alert('✅ Sucesso', 'Entrada excluída com sucesso!');
-            } else {
-              Alert.alert('Erro', 'Não foi possível excluir a entrada');
-            }
-          }
-        }
-      ]
-    );
-  };
+const handleDeleteEntry = async (id) => {
+  const success = await deleteEntry(id);
+  if (success) {
+    await loadEntries();
+    if (editingEntry && editingEntry.id === id) {
+      clearForm();
+    }
+  }
+};
 
   const handleEditEntry = (entry) => {
     setDate(entry.date);
@@ -157,19 +136,18 @@ const DiaryScreen = () => {
     setBgColor(entry.bgColor);
     setEditingEntry(entry);
     
-    // Scroll para o topo para mostrar o formulário
     Alert.alert('✏️ Modo de Edição', 'Edite a entrada e clique em "Atualizar Entrada"');
   };
 
   const handleSelectDate = (selectedDate) => {
     setDate(formatDate(selectedDate));
     setSelectedDate(selectedDate);
-    setSelectedMonth(null); // Limpar filtro de mês quando seleciona um dia
+    setSelectedMonth(null);
   };
 
   const handleMonthChange = (month, year) => {
     setSelectedMonth({ month, year });
-    setSelectedDate(null); // Limpar filtro de dia quando muda de mês
+    setSelectedDate(null);
   };
 
   const clearFilters = () => {
@@ -206,7 +184,6 @@ const DiaryScreen = () => {
           keyboardShouldPersistTaps="handled"
           showsVerticalScrollIndicator={false}
         >
-          {/* Calendário */}
           <View style={styles.section}>
             <Calendar 
               entries={entries} 
@@ -215,12 +192,7 @@ const DiaryScreen = () => {
             />
           </View>
 
-          {/* Formulário de Nova Entrada */}
           <View style={styles.formContainer}>
-            <Text style={styles.sectionTitle}>
-              {editingEntry ? '✏️ Editar Entrada' : '✍️ Nova Entrada'}
-            </Text>
-
             <View style={styles.inputGroup}>
               <Text style={styles.label}>Data</Text>
               <TextInput
@@ -284,7 +256,6 @@ const DiaryScreen = () => {
             </View>
           </View>
 
-          {/* Lista de Entradas */}
           <View style={styles.entriesContainer}>
             <View style={styles.entriesHeader}>
               <Text style={styles.sectionTitle}>📚 Suas Entradas</Text>
@@ -372,14 +343,14 @@ const styles = StyleSheet.create({
     fontSize: 15,
     fontWeight: '600',
     color: COLORS.textMedium,
-    marginBottom: 8,
+    marginBottom: 2,
   },
   input: {
     backgroundColor: '#FFF8FC',
     borderWidth: 1,
     borderColor: COLORS.border,
     borderRadius: 12,
-    padding: 15,
+    padding: 10,
     fontSize: 16,
     color: COLORS.textDark,
   },

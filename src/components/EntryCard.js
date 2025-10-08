@@ -89,18 +89,23 @@ const styles = StyleSheet.create({
   buttonGroup: {
     flexDirection: 'row',
     gap: 10,
+    alignItems: 'center',
   },
   editButton: {
-    padding: 5,
+    padding: 8,
+    minWidth: 40,
+    alignItems: 'center',
   },
   editButtonText: {
-    fontSize: 22,
+    fontSize: 20,
   },
   deleteButton: {
-    padding: 5,
+    padding: 8,
+    minWidth: 40,
+    alignItems: 'center',
   },
   deleteButtonText: {
-    fontSize: 22,
+    fontSize: 20,
   },
   text: {
     fontSize: 16,
