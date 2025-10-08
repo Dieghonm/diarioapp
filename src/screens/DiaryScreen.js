@@ -32,6 +32,7 @@ const DiaryScreen = () => {
   const [selectedDate, setSelectedDate] = useState(null);
   const [selectedMonth, setSelectedMonth] = useState(null);
   const [editingEntry, setEditingEntry] = useState(null);
+  const [activeTab, setActiveTab] = useState('form');
 
   useEffect(() => {
     loadEntries();
@@ -95,6 +96,7 @@ const DiaryScreen = () => {
         clearForm();
         Keyboard.dismiss();
         Alert.alert('✅ Sucesso!', 'Entrada atualizada com sucesso!');
+        setActiveTab('list');
       } else {
         Alert.alert('Erro', 'Não foi possível atualizar a entrada');
       }
@@ -105,6 +107,7 @@ const DiaryScreen = () => {
         clearForm();
         Keyboard.dismiss();
         Alert.alert('✅ Sucesso!', 'Entrada salva com sucesso!');
+        setActiveTab('list');
       } else {
         Alert.alert('Erro', 'Não foi possível salvar a entrada');
       }
@@ -119,15 +122,31 @@ const DiaryScreen = () => {
     setEditingEntry(null);
   };
 
-const handleDeleteEntry = async (id) => {
-  const success = await deleteEntry(id);
-  if (success) {
-    await loadEntries();
-    if (editingEntry && editingEntry.id === id) {
-      clearForm();
-    }
-  }
-};
+  const handleDeleteEntry = async (id) => {
+    Alert.alert(
+      'Confirmar exclusão',
+      'Deseja realmente excluir esta entrada?',
+      [
+        { text: 'Cancelar', style: 'cancel' },
+        {
+          text: 'Excluir',
+          style: 'destructive',
+          onPress: async () => {
+            const success = await deleteEntry(id);
+            if (success) {
+              await loadEntries();
+              if (editingEntry && editingEntry.id === id) {
+                clearForm();
+              }
+              Alert.alert('✅ Sucesso', 'Entrada excluída!');
+            } else {
+              Alert.alert('Erro', 'Não foi possível excluir a entrada');
+            }
+          }
+        }
+      ]
+    );
+  };
 
   const handleEditEntry = (entry) => {
     setDate(entry.date);
@@ -135,7 +154,7 @@ const handleDeleteEntry = async (id) => {
     setText(entry.text);
     setBgColor(entry.bgColor);
     setEditingEntry(entry);
-    
+    setActiveTab('form');
     Alert.alert('✏️ Modo de Edição', 'Edite a entrada e clique em "Atualizar Entrada"');
   };
 
@@ -175,6 +194,29 @@ const handleDeleteEntry = async (id) => {
         subtitle={`${entries.length} ${entries.length === 1 ? 'entrada' : 'entradas'}`}
       />
       
+      {/* Abas de Navegação */}
+      <View style={styles.tabContainer}>
+        <TouchableOpacity
+          style={[styles.tab, activeTab === 'form' && styles.activeTab]}
+          onPress={() => setActiveTab('form')}
+          activeOpacity={0.7}
+        >
+          <Text style={[styles.tabText, activeTab === 'form' && styles.activeTabText]}>
+            ✍️ {editingEntry ? 'Editar' : 'Escrever'}
+          </Text>
+        </TouchableOpacity>
+        
+        <TouchableOpacity
+          style={[styles.tab, activeTab === 'list' && styles.activeTab]}
+          onPress={() => setActiveTab('list')}
+          activeOpacity={0.7}
+        >
+          <Text style={[styles.tabText, activeTab === 'list' && styles.activeTabText]}>
+            📚 Minhas anotação
+          </Text>
+        </TouchableOpacity>
+      </View>
+
       <KeyboardAvoidingView
         style={styles.flex}
         behavior={Platform.OS === 'ios' ? 'padding' : undefined}
@@ -192,111 +234,119 @@ const handleDeleteEntry = async (id) => {
             />
           </View>
 
-          <View style={styles.formContainer}>
-            <View style={styles.inputGroup}>
-              <Text style={styles.label}>Data</Text>
-              <TextInput
-                style={styles.input}
-                value={date}
-                onChangeText={setDate}
-                placeholder="Ex: 07/10/2025"
-                placeholderTextColor="#999"
-                returnKeyType="next"
-              />
-            </View>
+          {activeTab === 'form' && (
+            <View style={styles.formContainer}>
+              <View style={styles.inputGroup}>
+                <Text style={styles.label}>Data</Text>
+                <TextInput
+                  style={styles.input}
+                  value={date}
+                  onChangeText={setDate}
+                  placeholder="Ex: 07/10/2025"
+                  placeholderTextColor="#999"
+                  returnKeyType="next"
+                />
+              </View>
 
-            <View style={styles.inputGroup}>
-              <Text style={styles.label}>Tema (opcional)</Text>
-              <TextInput
-                style={styles.input}
-                value={theme}
-                onChangeText={setTheme}
-                placeholder="Ex: Um dia especial"
-                placeholderTextColor="#999"
-                returnKeyType="next"
-              />
-            </View>
+              <View style={styles.inputGroup}>
+                <Text style={styles.label}>Tema (opcional)</Text>
+                <TextInput
+                  style={styles.input}
+                  value={theme}
+                  onChangeText={setTheme}
+                  placeholder="Ex: Um dia especial"
+                  placeholderTextColor="#999"
+                  returnKeyType="next"
+                />
+              </View>
 
-            <View style={styles.inputGroup}>
-              <Text style={styles.label}>Como foi seu dia?</Text>
-              <TextInput
-                style={[styles.input, styles.textArea]}
-                value={text}
-                onChangeText={setText}
-                placeholder="Escreva sobre seu dia, seus sentimentos, pensamentos..."
-                multiline
-                numberOfLines={6}
-                placeholderTextColor="#999"
-                textAlignVertical="top"
-              />
-            </View>
+              <View style={styles.inputGroup}>
+                <Text style={styles.label}>Como foi seu dia?</Text>
+                <TextInput
+                  style={[styles.input, styles.textArea]}
+                  value={text}
+                  onChangeText={setText}
+                  placeholder="Escreva sobre seu dia, seus sentimentos, pensamentos..."
+                  multiline
+                  numberOfLines={6}
+                  placeholderTextColor="#999"
+                  textAlignVertical="top"
+                />
+              </View>
 
-            <ColorPicker selectedColor={bgColor} onSelectColor={setBgColor} />
+              <ColorPicker selectedColor={bgColor} onSelectColor={setBgColor} />
 
-            <View style={styles.buttonContainer}>
-              <TouchableOpacity
-                style={styles.saveButton}
-                onPress={handleSaveEntry}
-                activeOpacity={0.8}
-              >
-                <Text style={styles.saveButtonText}>
-                  {editingEntry ? '💾 Atualizar Entrada' : '💾 Salvar Entrada'}
-                </Text>
-              </TouchableOpacity>
-
-              {editingEntry && (
+              <View style={styles.buttonContainer}>
                 <TouchableOpacity
-                  style={styles.cancelButton}
-                  onPress={clearForm}
+                  style={styles.saveButton}
+                  onPress={handleSaveEntry}
                   activeOpacity={0.8}
                 >
-                  <Text style={styles.cancelButtonText}>❌ Cancelar</Text>
+                  <Text style={styles.saveButtonText}>
+                    {editingEntry ? '💾 Atualizar anotação' : '💾 Salvar anotação'}
+                  </Text>
                 </TouchableOpacity>
-              )}
-            </View>
-          </View>
 
-          <View style={styles.entriesContainer}>
-            <View style={styles.entriesHeader}>
-              <Text style={styles.sectionTitle}>📚 Suas Entradas</Text>
-              {(selectedDate || selectedMonth) && (
-                <TouchableOpacity 
-                  style={styles.clearFilterButton}
-                  onPress={clearFilters}
-                >
-                  <Text style={styles.clearFilterText}>Mostrar Todas</Text>
-                </TouchableOpacity>
-              )}
-            </View>
-
-            <Text style={styles.filterInfo}>{getFilterText()}</Text>
-            
-            {filteredEntries.length === 0 ? (
-              <View style={styles.emptyState}>
-                <Text style={styles.emptyEmoji}>📝</Text>
-                <Text style={styles.emptyText}>
-                  {(selectedDate || selectedMonth) 
-                    ? 'Nenhuma entrada neste período' 
-                    : 'Nenhuma entrada ainda'}
-                </Text>
-                <Text style={styles.emptySubtext}>
-                  {(selectedDate || selectedMonth)
-                    ? 'Tente selecionar outro período'
-                    : 'Comece a escrever seu diário acima!'}
-                </Text>
+                {editingEntry && (
+                  <TouchableOpacity
+                    style={styles.cancelButton}
+                    onPress={() => {
+                      clearForm();
+                      setActiveTab('list');
+                    }}
+                    activeOpacity={0.8}
+                  >
+                    <Text style={styles.cancelButtonText}>❌ Cancelar</Text>
+                  </TouchableOpacity>
+                )}
               </View>
-            ) : (
-              filteredEntries.map((entry) => (
-                <EntryCard
-                  key={entry.id}
-                  entry={entry}
-                  onDelete={() => handleDeleteEntry(entry.id)}
-                  onEdit={() => handleEditEntry(entry)}
-                  isEditing={editingEntry && editingEntry.id === entry.id}
-                />
-              ))
-            )}
-          </View>
+            </View>
+          )}
+
+          {/* Lista de Entradas */}
+          {activeTab === 'list' && (
+            <View style={styles.entriesContainer}>
+              <View style={styles.entriesHeader}>
+                <Text style={styles.sectionTitle}>📚 Suas anotação</Text>
+                {(selectedDate || selectedMonth) && (
+                  <TouchableOpacity 
+                    style={styles.clearFilterButton}
+                    onPress={clearFilters}
+                  >
+                    <Text style={styles.clearFilterText}>Mostrar Todas</Text>
+                  </TouchableOpacity>
+                )}
+              </View>
+
+              <Text style={styles.filterInfo}>{getFilterText()}</Text>
+              
+              {filteredEntries.length === 0 ? (
+                <View style={styles.emptyState}>
+                  <Text style={styles.emptyEmoji}>📝</Text>
+                  <Text style={styles.emptyText}>
+                    {(selectedDate || selectedMonth) 
+                      ? 'Nenhuma anotação neste período' 
+                      : 'Nenhuma anotação ainda'}
+                  </Text>
+                  <Text style={styles.emptySubtext}>
+                    {(selectedDate || selectedMonth)
+                      ? 'Tente selecionar outro período'
+                      : 'Clique em "Escrever" para começar!'}
+                  </Text>
+                </View>
+              ) : (
+                filteredEntries.map((entry) => (
+                  <EntryCard
+                    key={entry.id}
+                    entry={entry}
+                    onDelete={() => handleDeleteEntry(entry.id)}
+                    onEdit={() => handleEditEntry(entry)}
+                    isEditing={editingEntry && editingEntry.id === entry.id}
+                  />
+                ))
+              )}
+            </View>
+          )}
           
           <View style={styles.bottomSpacing} />
         </ScrollView>
@@ -311,6 +361,32 @@ const styles = StyleSheet.create({
   },
   scrollContainer: {
     flex: 1,
+  },
+  tabContainer: {
+    flexDirection: 'row',
+    backgroundColor: COLORS.white,
+    borderBottomWidth: 2,
+    borderBottomColor: COLORS.lightPink,
+  },
+  tab: {
+    flex: 1,
+    paddingVertical: 15,
+    alignItems: 'center',
+    borderBottomWidth: 3,
+    borderBottomColor: 'transparent',
+  },
+  activeTab: {
+    borderBottomColor: COLORS.primary,
+    backgroundColor: COLORS.lightPink,
+  },
+  tabText: {
+    fontSize: 16,
+    fontWeight: '600',
+    color: COLORS.textMedium,
+  },
+  activeTabText: {
+    color: COLORS.primary,
+    fontWeight: 'bold',
   },
   section: {
     padding: 15,
@@ -343,14 +419,14 @@ const styles = StyleSheet.create({
     fontSize: 15,
     fontWeight: '600',
     color: COLORS.textMedium,
-    marginBottom: 2,
+    marginBottom: 8,
   },
   input: {
     backgroundColor: '#FFF8FC',
     borderWidth: 1,
     borderColor: COLORS.border,
     borderRadius: 12,
-    padding: 10,
+    padding: 15,
     fontSize: 16,
     color: COLORS.textDark,
   },
