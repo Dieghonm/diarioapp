@@ -9,6 +9,7 @@ export const COLORS = {
   
   background: '#FFF0F5',
   white: '#FFFFFF',
+  teste: '#1d27e9ff',
   
   border: '#F4C8DD',
   lightPink: '#FFE4F1',

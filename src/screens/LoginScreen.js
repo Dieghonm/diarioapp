@@ -1,33 +1,65 @@
-// src/screens/LoginScreen.js
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import {
   View,
   Text,
   TextInput,
   TouchableOpacity,
   StyleSheet,
-  Alert,
   KeyboardAvoidingView,
   Platform,
   SafeAreaView,
   StatusBar,
   Keyboard,
   TouchableWithoutFeedback,
+  Animated,
 } from 'react-native';
 import { COLORS, globalStyles } from '../styles/theme';
 import { verifyPassword } from '../services/storage';
+import Toast from '../components/Toast';
+import { AdMobBanner, setTestDeviceIDAsync } from 'expo-ads-admob';
 
 const LoginScreen = ({ onLogin }) => {
   const [password, setPassword] = useState('');
+  const [toast, setToast] = useState({ visible: false, message: '', type: 'success' });
+  const [error, setError] = useState('');
+  const shakeAnimation = new Animated.Value(0);
+
+  useEffect(() => {
+    const initAdMob = async () => {
+      await setTestDeviceIDAsync('EMULATOR');
+    };
+    initAdMob();
+  }, []);
+
+  const showToast = (message, type = 'success') => {
+    setToast({ visible: true, message, type });
+  };
+
+  const hideToast = () => {
+    setToast({ visible: false, message: '', type: 'success' });
+  };
+
+  const shakeInput = () => {
+    Animated.sequence([
+      Animated.timing(shakeAnimation, { toValue: 10, duration: 100, useNativeDriver: true }),
+      Animated.timing(shakeAnimation, { toValue: -10, duration: 100, useNativeDriver: true }),
+      Animated.timing(shakeAnimation, { toValue: 10, duration: 100, useNativeDriver: true }),
+      Animated.timing(shakeAnimation, { toValue: 0, duration: 100, useNativeDriver: true }),
+    ]).start();
+  };
 
   const handleLogin = async () => {
+    setError('');
     const isValid = await verifyPassword(password);
-    
+
     if (isValid) {
-      onLogin();
+      showToast('Bem-vindo de volta!', 'success');
+      setTimeout(() => onLogin(), 500);
     } else {
-      Alert.alert('Erro', 'Senha incorreta!');
+      setError('Senha incorreta');
+      showToast('Senha incorreta. Tente novamente.', 'error');
       setPassword('');
+      shakeInput();
     }
   };
 
@@ -35,6 +67,14 @@ const LoginScreen = ({ onLogin }) => {
     <TouchableWithoutFeedback onPress={Keyboard.dismiss}>
       <SafeAreaView style={globalStyles.container}>
         <StatusBar barStyle="dark-content" backgroundColor={COLORS.background} />
+
+        <Toast
+          visible={toast.visible}
+          message={toast.message}
+          type={toast.type}
+          onHide={hideToast}
+        />
+
         <KeyboardAvoidingView
           style={styles.container}
           behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
@@ -43,45 +83,68 @@ const LoginScreen = ({ onLogin }) => {
             <View style={styles.lockIcon}>
               <Text style={styles.lockEmoji}>🔒</Text>
             </View>
-            
+
             <Text style={styles.title}>Meu Diário</Text>
             <Text style={styles.subtitle}>Digite sua senha para continuar</Text>
 
             <View style={styles.passwordContainer}>
-              <TextInput
-                style={styles.passwordInput}
-                value={password}
-                onChangeText={setPassword}
-                placeholder="••••"
-                keyboardType="number-pad"
-                maxLength={4}
-                secureTextEntry
-                placeholderTextColor="#999"
-                autoFocus
-              />
+              <Animated.View
+                style={[
+                  styles.inputWrapper,
+                  { transform: [{ translateX: shakeAnimation }] },
+                ]}
+              >
+                <TextInput
+                  style={[styles.passwordInput, error && styles.passwordInputError]}
+                  value={password}
+                  onChangeText={(text) => {
+                    setPassword(text);
+                    setError('');
+                  }}
+                  placeholder="••••"
+                  keyboardType="number-pad"
+                  maxLength={4}
+                  secureTextEntry
+                  placeholderTextColor="#999"
+                  autoFocus
+                />
+              </Animated.View>
+              {error && (
+                <View style={styles.errorContainer}>
+                  <Text style={styles.errorText}>⚠️ {error}</Text>
+                </View>
+              )}
             </View>
 
             <TouchableOpacity
               style={[
                 styles.loginButton,
-                password.length === 4 && styles.loginButtonActive
+                password.length === 4 && styles.loginButtonActive,
               ]}
               onPress={handleLogin}
               activeOpacity={0.8}
+              disabled={password.length < 4}
             >
               <Text style={styles.loginButtonText}>Entrar</Text>
             </TouchableOpacity>
           </View>
         </KeyboardAvoidingView>
+
+        <View style={styles.bannerContainer}>
+          <AdMobBanner
+            bannerSize="banner"
+            adUnitID="ca-app-pub-7575632514010930/6690761032"
+            servePersonalizedAds
+            onDidFailToReceiveAdWithError={(err) => console.log('Erro ao carregar banner:', err)}
+          />
+        </View>
       </SafeAreaView>
     </TouchableWithoutFeedback>
   );
 };
 
 const styles = StyleSheet.create({
-  container: {
-    flex: 1,
-  },
+  container: { flex: 1 },
   content: {
     flex: 1,
     justifyContent: 'center',
@@ -97,9 +160,7 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     marginBottom: 20,
   },
-  lockEmoji: {
-    fontSize: 50,
-  },
+  lockEmoji: { fontSize: 50 },
   title: {
     fontSize: 36,
     fontWeight: 'bold',
@@ -117,8 +178,9 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     marginBottom: 30,
   },
+  inputWrapper: { width: 220 },
   passwordInput: {
-    width: 220,
+    width: '100%',
     height: 70,
     backgroundColor: COLORS.white,
     borderRadius: 15,
@@ -134,6 +196,22 @@ const styles = StyleSheet.create({
     shadowRadius: 4,
     elevation: 3,
   },
+  passwordInputError: {
+    borderColor: '#EF4444',
+    backgroundColor: '#FEE2E2',
+  },
+  errorContainer: {
+    marginTop: 10,
+    backgroundColor: '#FEE2E2',
+    paddingVertical: 8,
+    paddingHorizontal: 15,
+    borderRadius: 10,
+  },
+  errorText: {
+    color: '#DC2626',
+    fontSize: 14,
+    fontWeight: '600',
+  },
   loginButton: {
     backgroundColor: COLORS.primary,
     paddingHorizontal: 50,
@@ -146,14 +224,21 @@ const styles = StyleSheet.create({
     shadowOpacity: 0.3,
     shadowRadius: 6,
     elevation: 5,
+    opacity: 0.6,
   },
   loginButtonActive: {
     backgroundColor: COLORS.primaryDark,
+    opacity: 1,
   },
   loginButtonText: {
     color: COLORS.white,
     fontSize: 18,
     fontWeight: 'bold',
+  },
+  bannerContainer: {
+    alignItems: 'center',
+    justifyContent: 'center',
+    marginBottom: 10,
   },
 });
 

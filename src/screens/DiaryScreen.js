@@ -5,7 +5,6 @@ import {
   TextInput,
   TouchableOpacity,
   StyleSheet,
-  Alert,
   KeyboardAvoidingView,
   Platform,
   SafeAreaView,
@@ -14,13 +13,15 @@ import {
   Keyboard,
 } from 'react-native';
 import { COLORS, globalStyles } from '../styles/theme';
-import { addEntry, getEntries, updateEntry } from '../services/storage';
-import { getCurrentDate, formatDate, parseDate, normalizeDate } from '../utils/dateUtils';
+import { addEntry, getEntries, updateEntry, deleteEntry } from '../services/storage';
+import { getCurrentDate, formatDate, parseDate } from '../utils/dateUtils';
 import Header from '../components/Header';
 import Calendar from '../components/Calendar';
 import ColorPicker from '../components/ColorPicker';
 import EntryCard from '../components/EntryCard';
-import { deleteEntry } from '../services/storage';
+import Toast from '../components/Toast';
+import ConfirmModal from '../components/ConfirmModal';
+import { AdMobBanner } from 'expo-ads-admob';
 
 const DiaryScreen = () => {
   const [date, setDate] = useState(getCurrentDate());
@@ -33,6 +34,9 @@ const DiaryScreen = () => {
   const [selectedMonth, setSelectedMonth] = useState(null);
   const [editingEntry, setEditingEntry] = useState(null);
   const [activeTab, setActiveTab] = useState('form');
+  const [toast, setToast] = useState({ visible: false, message: '', type: 'success' });
+  const [confirmModal, setConfirmModal] = useState({ visible: false, entryId: null });
+  const [formError, setFormError] = useState('');
 
   useEffect(() => {
     loadEntries();
@@ -41,6 +45,14 @@ const DiaryScreen = () => {
   useEffect(() => {
     filterEntries();
   }, [entries, selectedDate, selectedMonth]);
+
+  const showToast = (message, type = 'success') => {
+    setToast({ visible: true, message, type });
+  };
+
+  const hideToast = () => {
+    setToast({ visible: false, message: '', type: 'success' });
+  };
 
   const loadEntries = async () => {
     const data = await getEntries();
@@ -77,8 +89,11 @@ const DiaryScreen = () => {
   };
 
   const handleSaveEntry = async () => {
+    setFormError('');
+
     if (!date.trim() || !text.trim()) {
-      Alert.alert('Atenção', 'Preencha a data e o texto');
+      setFormError('Preencha a data e o texto da entrada');
+      showToast('Preencha a data e o texto da entrada', 'warning');
       return;
     }
 
@@ -95,10 +110,10 @@ const DiaryScreen = () => {
         await loadEntries();
         clearForm();
         Keyboard.dismiss();
-        Alert.alert('✅ Sucesso!', 'Entrada atualizada com sucesso!');
+        showToast('Entrada atualizada com sucesso!', 'success');
         setActiveTab('list');
       } else {
-        Alert.alert('Erro', 'Não foi possível atualizar a entrada');
+        showToast('Erro ao atualizar entrada', 'error');
       }
     } else {
       const newEntry = await addEntry(entry);
@@ -106,10 +121,10 @@ const DiaryScreen = () => {
         await loadEntries();
         clearForm();
         Keyboard.dismiss();
-        Alert.alert('✅ Sucesso!', 'Entrada salva com sucesso!');
+        showToast('Entrada salva com sucesso!', 'success');
         setActiveTab('list');
       } else {
-        Alert.alert('Erro', 'Não foi possível salvar a entrada');
+        showToast('Erro ao salvar entrada', 'error');
       }
     }
   };
@@ -120,32 +135,29 @@ const DiaryScreen = () => {
     setText('');
     setBgColor('pink');
     setEditingEntry(null);
+    setFormError('');
   };
 
-  const handleDeleteEntry = async (id) => {
-    Alert.alert(
-      'Confirmar exclusão',
-      'Deseja realmente excluir esta entrada?',
-      [
-        { text: 'Cancelar', style: 'cancel' },
-        {
-          text: 'Excluir',
-          style: 'destructive',
-          onPress: async () => {
-            const success = await deleteEntry(id);
-            if (success) {
-              await loadEntries();
-              if (editingEntry && editingEntry.id === id) {
-                clearForm();
-              }
-              Alert.alert('✅ Sucesso', 'Entrada excluída!');
-            } else {
-              Alert.alert('Erro', 'Não foi possível excluir a entrada');
-            }
-          }
-        }
-      ]
-    );
+  const handleDeleteEntry = (id) => {
+    setConfirmModal({ visible: true, entryId: id });
+  };
+
+  const confirmDelete = async () => {
+    const success = await deleteEntry(confirmModal.entryId);
+    if (success) {
+      await loadEntries();
+      if (editingEntry && editingEntry.id === confirmModal.entryId) {
+        clearForm();
+      }
+      showToast('Entrada excluída com sucesso!', 'success');
+    } else {
+      showToast('Erro ao excluir entrada', 'error');
+    }
+    setConfirmModal({ visible: false, entryId: null });
+  };
+
+  const cancelDelete = () => {
+    setConfirmModal({ visible: false, entryId: null });
   };
 
   const handleEditEntry = (entry) => {
@@ -155,7 +167,7 @@ const DiaryScreen = () => {
     setBgColor(entry.bgColor);
     setEditingEntry(entry);
     setActiveTab('form');
-    Alert.alert('✏️ Modo de Edição', 'Edite a entrada e clique em "Atualizar Entrada"');
+    showToast('Modo de edição ativado', 'info');
   };
 
   const handleSelectDate = (selectedDate) => {
@@ -189,12 +201,27 @@ const DiaryScreen = () => {
   return (
     <SafeAreaView style={globalStyles.container}>
       <StatusBar barStyle="light-content" backgroundColor={COLORS.primary} />
+      
+      <Toast
+        visible={toast.visible}
+        message={toast.message}
+        type={toast.type}
+        onHide={hideToast}
+      />
+
+      <ConfirmModal
+        visible={confirmModal.visible}
+        title="Confirmar exclusão"
+        message="Deseja realmente excluir esta entrada? Esta ação não pode ser desfeita."
+        onConfirm={confirmDelete}
+        onCancel={cancelDelete}
+      />
+
       <Header 
         title="📔 Querido Diário" 
         subtitle={`${entries.length} ${entries.length === 1 ? 'entrada' : 'entradas'}`}
       />
       
-      {/* Abas de Navegação */}
       <View style={styles.tabContainer}>
         <TouchableOpacity
           style={[styles.tab, activeTab === 'form' && styles.activeTab]}
@@ -235,75 +262,103 @@ const DiaryScreen = () => {
           </View>
 
           {activeTab === 'form' && (
-            <View style={styles.formContainer}>
-              <View style={styles.inputGroup}>
-                <Text style={styles.label}>Data</Text>
-                <TextInput
-                  style={styles.input}
-                  value={date}
-                  onChangeText={setDate}
-                  placeholder="Ex: 07/10/2025"
-                  placeholderTextColor="#999"
-                  returnKeyType="next"
-                />
-              </View>
-
-              <View style={styles.inputGroup}>
-                <Text style={styles.label}>Tema (opcional)</Text>
-                <TextInput
-                  style={styles.input}
-                  value={theme}
-                  onChangeText={setTheme}
-                  placeholder="Ex: Um dia especial"
-                  placeholderTextColor="#999"
-                  returnKeyType="next"
-                />
-              </View>
-
-              <View style={styles.inputGroup}>
-                <Text style={styles.label}>Como foi seu dia?</Text>
-                <TextInput
-                  style={[styles.input, styles.textArea]}
-                  value={text}
-                  onChangeText={setText}
-                  placeholder="Escreva sobre seu dia, seus sentimentos, pensamentos..."
-                  multiline
-                  numberOfLines={6}
-                  placeholderTextColor="#999"
-                  textAlignVertical="top"
-                />
-              </View>
-
-              <ColorPicker selectedColor={bgColor} onSelectColor={setBgColor} />
-
-              <View style={styles.buttonContainer}>
-                <TouchableOpacity
-                  style={styles.saveButton}
-                  onPress={handleSaveEntry}
-                  activeOpacity={0.8}
-                >
-                  <Text style={styles.saveButtonText}>
-                    {editingEntry ? '💾 Atualizar anotação' : '💾 Salvar anotação'}
-                  </Text>
-                </TouchableOpacity>
-
+            <View>
+              <View style={styles.formContainer}>
                 {editingEntry && (
-                  <TouchableOpacity
-                    style={styles.cancelButton}
-                    onPress={() => {
-                      clearForm();
-                      setActiveTab('list');
+                  <View style={styles.editingBanner}>
+                    <Text style={styles.editingBannerText}>✏️ Editando entrada</Text>
+                  </View>
+                )}
+
+                <View style={styles.inputGroup}>
+                  <Text style={styles.label}>Data</Text>
+                  <TextInput
+                    style={[styles.input, formError && !date.trim() && styles.inputError]}
+                    value={date}
+                    onChangeText={(text) => {
+                      setDate(text);
+                      setFormError('');
                     }}
+                    placeholder="Ex: 07/10/2025"
+                    placeholderTextColor="#999"
+                    returnKeyType="next"
+                  />
+                </View>
+
+                <View style={styles.inputGroup}>
+                  <Text style={styles.label}>Tema (opcional)</Text>
+                  <TextInput
+                    style={styles.input}
+                    value={theme}
+                    onChangeText={setTheme}
+                    placeholder="Ex: Um dia especial"
+                    placeholderTextColor="#999"
+                    returnKeyType="next"
+                  />
+                </View>
+
+                <View style={styles.inputGroup}>
+                  <Text style={styles.label}>Como foi seu dia?</Text>
+                  <TextInput
+                    style={[styles.input, styles.textArea, formError && !text.trim() && styles.inputError]}
+                    value={text}
+                    onChangeText={(text) => {
+                      setText(text);
+                      setFormError('');
+                    }}
+                    placeholder="Escreva sobre seu dia, seus sentimentos, pensamentos..."
+                    multiline
+                    numberOfLines={6}
+                    placeholderTextColor="#999"
+                    textAlignVertical="top"
+                  />
+                </View>
+
+                {formError && (
+                  <View style={styles.formErrorContainer}>
+                    <Text style={styles.formErrorText}>⚠️ {formError}</Text>
+                  </View>
+                )}
+
+                <ColorPicker selectedColor={bgColor} onSelectColor={setBgColor} />
+
+                <View style={styles.buttonContainer}>
+                  <TouchableOpacity
+                    style={styles.saveButton}
+                    onPress={handleSaveEntry}
                     activeOpacity={0.8}
                   >
-                    <Text style={styles.cancelButtonText}>❌ Cancelar</Text>
+                    <Text style={styles.saveButtonText}>
+                      {editingEntry ? '💾 Atualizar anotação' : '💾 Salvar anotação'}
+                    </Text>
                   </TouchableOpacity>
-                )}
+
+                  {editingEntry && (
+                    <TouchableOpacity
+                      style={styles.cancelButton}
+                      onPress={() => {
+                        clearForm();
+                        setActiveTab('list');
+                        showToast('Edição cancelada', 'info');
+                      }}
+                      activeOpacity={0.8}
+                    >
+                      <Text style={styles.cancelButtonText}>❌ Cancelar</Text>
+                    </TouchableOpacity>
+                  )}
+                </View>
+              </View>
+              <View style={styles.bannerContainer}>
+                <AdMobBanner
+                  bannerSize="banner"
+                  adUnitID="ca-app-pub-7575632514010930/6690761032"
+                  servePersonalizedAds
+                  onDidFailToReceiveAdWithError={(err) => console.log('Erro ao carregar banner:', err)}
+                />
               </View>
             </View>
           )}
 
-          {/* Lista de Entradas */}
           {activeTab === 'list' && (
             <View style={styles.entriesContainer}>
               <View style={styles.entriesHeader}>
@@ -345,6 +400,14 @@ const DiaryScreen = () => {
                   />
                 ))
               )}
+              <View style={styles.bannerContainer}>
+                <AdMobBanner
+                  bannerSize="banner"
+                  adUnitID="ca-app-pub-7575632514010930/6690761032"
+                  servePersonalizedAds
+                  onDidFailToReceiveAdWithError={(err) => console.log('Erro ao carregar banner:', err)}
+                />
+              </View>
             </View>
           )}
           
@@ -406,6 +469,19 @@ const styles = StyleSheet.create({
     borderWidth: 1,
     borderColor: COLORS.lightPink,
   },
+  editingBanner: {
+    backgroundColor: COLORS.primary,
+    paddingVertical: 10,
+    paddingHorizontal: 15,
+    borderRadius: 10,
+    marginBottom: 20,
+    alignItems: 'center',
+  },
+  editingBannerText: {
+    color: COLORS.white,
+    fontSize: 16,
+    fontWeight: 'bold',
+  },
   sectionTitle: {
     fontSize: 20,
     fontWeight: 'bold',
@@ -430,9 +506,26 @@ const styles = StyleSheet.create({
     fontSize: 16,
     color: COLORS.textDark,
   },
+  inputError: {
+    borderColor: '#EF4444',
+    backgroundColor: '#FEE2E2',
+  },
   textArea: {
     height: 140,
     textAlignVertical: 'top',
+  },
+  formErrorContainer: {
+    backgroundColor: '#FEE2E2',
+    paddingVertical: 10,
+    paddingHorizontal: 15,
+    borderRadius: 10,
+    marginBottom: 15,
+  },
+  formErrorText: {
+    color: '#DC2626',
+    fontSize: 14,
+    fontWeight: '600',
+    textAlign: 'center',
   },
   buttonContainer: {
     gap: 10,
@@ -453,6 +546,7 @@ const styles = StyleSheet.create({
     color: COLORS.white,
     fontSize: 17,
     fontWeight: 'bold',
+    marginEnd: 20,
   },
   cancelButton: {
     backgroundColor: COLORS.textLight,
@@ -515,6 +609,11 @@ const styles = StyleSheet.create({
   },
   bottomSpacing: {
     height: 30,
+  },
+  bannerContainer: { 
+    alignItems: 'center', 
+    justifyContent: 'center', 
+    marginTop: 10
   },
 });
 

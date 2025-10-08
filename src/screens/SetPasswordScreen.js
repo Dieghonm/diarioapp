@@ -5,7 +5,6 @@ import {
   TextInput,
   TouchableOpacity,
   StyleSheet,
-  Alert,
   KeyboardAvoidingView,
   Platform,
   SafeAreaView,
@@ -15,23 +14,39 @@ import {
 } from 'react-native';
 import { COLORS, globalStyles } from '../styles/theme';
 import { savePassword } from '../services/storage';
+import Toast from '../components/Toast';
 
 const SetPasswordScreen = ({ onPasswordSet }) => {
   const [password, setPassword] = useState('');
+  const [toast, setToast] = useState({ visible: false, message: '', type: 'success' });
+  const [error, setError] = useState('');
+
+  const showToast = (message, type = 'success') => {
+    setToast({ visible: true, message, type });
+  };
+
+  const hideToast = () => {
+    setToast({ visible: false, message: '', type: 'success' });
+  };
 
   const handleSetPassword = async () => {
+    setError('');
+
     if (password.length < 4) {
-      Alert.alert('Atenção', 'A senha deve ter pelo menos 4 dígitos');
+      setError('A senha deve ter pelo menos 4 dígitos');
+      showToast('A senha deve ter pelo menos 4 dígitos', 'warning');
       return;
     }
 
     const success = await savePassword(password);
     if (success) {
-      Alert.alert('✅ Sucesso!', 'Senha criada com sucesso!', [
-        { text: 'OK', onPress: onPasswordSet }
-      ]);
+      showToast('Senha criada com sucesso!', 'success');
+      setTimeout(() => {
+        onPasswordSet();
+      }, 1000);
     } else {
-      Alert.alert('Erro', 'Não foi possível criar a senha');
+      setError('Não foi possível criar a senha');
+      showToast('Erro ao criar senha. Tente novamente.', 'error');
     }
   };
 
@@ -39,6 +54,14 @@ const SetPasswordScreen = ({ onPasswordSet }) => {
     <TouchableWithoutFeedback onPress={Keyboard.dismiss}>
       <SafeAreaView style={globalStyles.container}>
         <StatusBar barStyle="dark-content" backgroundColor={COLORS.background} />
+        
+        <Toast
+          visible={toast.visible}
+          message={toast.message}
+          type={toast.type}
+          onHide={hideToast}
+        />
+
         <KeyboardAvoidingView
           style={styles.container}
           behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
@@ -56,9 +79,12 @@ const SetPasswordScreen = ({ onPasswordSet }) => {
             <View style={styles.inputGroup}>
               <Text style={styles.label}>Digite sua senha</Text>
               <TextInput
-                style={styles.input}
+                style={[styles.input, error && styles.inputError]}
                 value={password}
-                onChangeText={setPassword}
+                onChangeText={(text) => {
+                  setPassword(text);
+                  setError('');
+                }}
                 placeholder="••••"
                 keyboardType="number-pad"
                 maxLength={4}
@@ -66,11 +92,15 @@ const SetPasswordScreen = ({ onPasswordSet }) => {
                 placeholderTextColor="#999"
                 autoFocus
               />
+              {error && (
+                <View style={styles.errorContainer}>
+                  <Text style={styles.errorText}>⚠️ {error}</Text>
+                </View>
+              )}
             </View>
+
             <TouchableOpacity
-              style={[
-                styles.button,
-              ]}
+              style={styles.button}
               onPress={handleSetPassword}
               activeOpacity={0.8}
             >
@@ -146,6 +176,22 @@ const styles = StyleSheet.create({
     shadowRadius: 4,
     elevation: 3,
   },
+  inputError: {
+    borderColor: '#EF4444',
+  },
+  errorContainer: {
+    marginTop: 10,
+    backgroundColor: '#FEE2E2',
+    paddingVertical: 10,
+    paddingHorizontal: 15,
+    borderRadius: 10,
+  },
+  errorText: {
+    color: '#DC2626',
+    fontSize: 14,
+    fontWeight: '600',
+    textAlign: 'center',
+  },
   button: {
     backgroundColor: COLORS.primary,
     paddingHorizontal: 50,
@@ -159,9 +205,6 @@ const styles = StyleSheet.create({
     shadowOpacity: 0.3,
     shadowRadius: 6,
     elevation: 5,
-  },
-  buttonActive: {
-    backgroundColor: COLORS.primaryDark,
   },
   buttonText: {
     color: COLORS.white,
