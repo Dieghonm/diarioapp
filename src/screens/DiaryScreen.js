@@ -21,7 +21,7 @@ import ColorPicker from '../components/ColorPicker';
 import EntryCard from '../components/EntryCard';
 import Toast from '../components/Toast';
 import ConfirmModal from '../components/ConfirmModal';
-import { BannerAd } from 'react-native-google-mobile-ads';
+// import { BannerAd } from 'react-native-google-mobile-ads';
 
 const DiaryScreen = () => {
   const [date, setDate] = useState(getCurrentDate());
@@ -349,12 +349,12 @@ const DiaryScreen = () => {
                 </View>
               </View>
               <View style={styles.bannerContainer}>
-                <BannerAd
+                {/* <BannerAd
                   bannerSize="banner"
                   adUnitID="ca-app-pub-7575632514010930/6690761032"
                   servePersonalizedAds
                   onDidFailToReceiveAdWithError={(err) => console.log('Erro ao carregar banner:', err)}
-                />
+                /> */}
               </View>
             </View>
           )}
@@ -401,12 +401,12 @@ const DiaryScreen = () => {
                 ))
               )}
               <View style={styles.bannerContainer}>
-                <BannerAd
+                {/* <BannerAd
                   bannerSize="banner"
                   adUnitID="ca-app-pub-7575632514010930/6690761032"
                   servePersonalizedAds
                   onDidFailToReceiveAdWithError={(err) => console.log('Erro ao carregar banner:', err)}
-                />
+                /> */}
               </View>
             </View>
           )}

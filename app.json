@@ -4,12 +4,10 @@
     "slug": "DiarioApp",
     "version": "1.0.0",
     "orientation": "portrait",
-    "icon": "./assets/diario.png",
     "userInterfaceStyle": "light",
     "splash": {
-      "image": "./assets/diario.png",
-      "resizeMode": "contain",
-      "backgroundColor": "#FFF0F5"
+      "backgroundColor": "#FFF0F5",
+      "resizeMode": "contain"
     },
     "assetBundlePatterns": [
       "**/*"
@@ -20,28 +18,26 @@
     },
     "android": {
       "adaptiveIcon": {
-        "foregroundImage": "./assets/diario.png",
         "backgroundColor": "#FFF0F5"
       },
       "package": "com.dieghonm.diarioapp"
     },
-    "web": {
-      "favicon": "./assets/diario.png"
-    },
+    "web": {},
     "plugins": [
       [
-        "expo-ads-admob",
+        "react-native-google-mobile-ads",
         {
           "androidAppId": "ca-app-pub-7575632514010930~6690761032",
           "iosAppId": "ca-app-pub-3940256099942544~1458002511"
         }
       ],
-      "react-native-google-mobile-ads"
+      "expo-build-properties"
     ],
     "extra": {
       "eas": {
         "projectId": "b00d4a90-33d3-4b83-94d3-0b200cc55c18"
       }
-    }
+    },
+    "sdkVersion": "54.0.0"
   }
 }

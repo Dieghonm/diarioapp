@@ -17,7 +17,7 @@ import { COLORS, globalStyles } from '../styles/theme';
 import { verifyPassword } from '../services/storage';
 import Toast from '../components/Toast';
 
-import { BannerAd, BannerAdSize, TestIds } from 'react-native-google-mobile-ads';
+// import { BannerAd, BannerAdSize, TestIds } from 'react-native-google-mobile-ads';
 
 const LoginScreen = ({ onLogin }) => {
   const [password, setPassword] = useState('');
@@ -126,14 +126,14 @@ const LoginScreen = ({ onLogin }) => {
         </KeyboardAvoidingView>
 
         <View style={styles.bannerContainer}>
-          <BannerAd
+          {/* <BannerAd
             unitId={__DEV__ ? TestIds.BANNER : 'ca-app-pub-7575632514010930/6690761032'}
             size={BannerAdSize.BANNER}
             requestOptions={{
               requestNonPersonalizedAdsOnly: true,
             }}
             onAdFailedToLoad={(err) => console.log('Erro ao carregar banner:', err)}
-          />
+          /> */}
         </View>
       </SafeAreaView>
     </TouchableWithoutFeedback>
