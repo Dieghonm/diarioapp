@@ -28,7 +28,16 @@
     "web": {
       "favicon": "./assets/diario.png"
     },
-    "plugins": [],
+    "plugins": [
+      [
+        "expo-ads-admob",
+        {
+          "androidAppId": "ca-app-pub-7575632514010930~6690761032",
+          "iosAppId": "ca-app-pub-3940256099942544~1458002511"
+        }
+      ],
+      "react-native-google-mobile-ads"
+    ],
     "extra": {
       "eas": {
         "projectId": "b00d4a90-33d3-4b83-94d3-0b200cc55c18"

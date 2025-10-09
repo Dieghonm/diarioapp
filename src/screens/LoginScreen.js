@@ -16,7 +16,8 @@ import {
 import { COLORS, globalStyles } from '../styles/theme';
 import { verifyPassword } from '../services/storage';
 import Toast from '../components/Toast';
-import { AdMobBanner, setTestDeviceIDAsync } from 'expo-ads-admob';
+
+import { BannerAd, BannerAdSize, TestIds } from 'react-native-google-mobile-ads';
 
 const LoginScreen = ({ onLogin }) => {
   const [password, setPassword] = useState('');
@@ -24,12 +25,6 @@ const LoginScreen = ({ onLogin }) => {
   const [error, setError] = useState('');
   const shakeAnimation = new Animated.Value(0);
 
-  useEffect(() => {
-    const initAdMob = async () => {
-      await setTestDeviceIDAsync('EMULATOR');
-    };
-    initAdMob();
-  }, []);
 
   const showToast = (message, type = 'success') => {
     setToast({ visible: true, message, type });
@@ -131,11 +126,13 @@ const LoginScreen = ({ onLogin }) => {
         </KeyboardAvoidingView>
 
         <View style={styles.bannerContainer}>
-          <AdMobBanner
-            bannerSize="banner"
-            adUnitID="ca-app-pub-7575632514010930/6690761032"
-            servePersonalizedAds
-            onDidFailToReceiveAdWithError={(err) => console.log('Erro ao carregar banner:', err)}
+          <BannerAd
+            unitId={__DEV__ ? TestIds.BANNER : 'ca-app-pub-7575632514010930/6690761032'}
+            size={BannerAdSize.BANNER}
+            requestOptions={{
+              requestNonPersonalizedAdsOnly: true,
+            }}
+            onAdFailedToLoad={(err) => console.log('Erro ao carregar banner:', err)}
           />
         </View>
       </SafeAreaView>
